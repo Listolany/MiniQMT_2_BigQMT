@@ -1,6 +1,6 @@
-# MiniQMT → BigQMT 策略转换 Skill
+# MiniQMT → 普通QMT内置python 策略转换 Skill
 
-把基于 **miniQMT 外接 xtquant**（`XtQuantTrader` / `xtdata`）的 Python 量化策略，转换为**大QMT内置Python**（`passorder` / `ContextInfo` 体系）可实盘运行的策略。
+把基于 **miniQMT / xtquant**（`XtQuantTrader` / `xtdata`）的 Python 量化策略，转换为**大QMT内置Python**（`passorder` / `ContextInfo` 体系）可实盘运行的策略。
 
 > 本 Skill 配合 Cursor AI Agent 使用，覆盖从可行性评估到上线部署的完整流程，含自动化工具脚本和真实转换对照示例。
 
@@ -41,7 +41,7 @@ python scripts/to_gbk.py 转换后策略.py 输出_gbk.py
 
 ---
 
-## 在 Cursor 中使用
+## 在 智能体工具ClaudeCode/Cursor/OpenClaw/Hermes/Workbuddy 中使用
 
 在对话里 `@MiniQMT2bigQMT_Skill`（将本目录放入 `.cursor/skills/` 或个人 skill 目录），Agent 会自动按 7 步流程完成转换并输出报告。
 
@@ -65,7 +65,7 @@ python scripts/to_gbk.py 转换后策略.py 输出_gbk.py
 
 ---
 
-## 关键实测结论（已用国金模拟双端交叉验证）
+## 关键实测结论（已用券商模拟环境双端交叉验证）
 
 - xtconstant 常量与内置枚举数值一致（15项全部核实）
 - `xc.CREDIT_BUY/CREDIT_SELL` 实际值 = 23/24 → **信用账户转换必须显式改 33/34**
