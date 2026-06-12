@@ -37,6 +37,8 @@ description: 将基于 miniQMT 的外部 xtquant 库（xttrader/xtdata）的 Pyt
 
 ### 第1步 静态分析与可行性评估
 
+用户若对内置端能力存疑（外部数据还能不能取、运行频率是否受限、能否回测、多策略会不会互相拖累等），先用 [faq.md](faq.md) 对齐认知再开工——这些多为误解，不要让错误前提影响转换方案。
+
 运行分析脚本，得到 API 清单、py3.6 语法违例、第三方依赖、阻塞模式等：
 
 ```bash
@@ -130,6 +132,7 @@ python scripts/to_gbk.py <转换后策略.py> <输出.py>
 
 ## 参考文件
 
+- [faq.md](faq.md) — 买方共性疑虑（外部数据/运行频率/同步下单/回测/性能预算），转换前对齐认知用
 - [api_mapping.md](api_mapping.md) — 全量函数/字段/枚举映射表
 - [constraints.md](constraints.md) — 限制清单、不可转场景判定与替代方案、部署细节
 - [examples.md](examples.md) — 真实策略（apscheduler+xtquant 700行）转换前后对照
