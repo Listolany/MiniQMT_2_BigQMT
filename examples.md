@@ -1,6 +1,6 @@
-# 转换实例：MiniQMT-demo.py（apscheduler+xtquant 实盘策略）
+# 转换实例：典型 apscheduler+xtquant 实盘策略
 
-以仓库根目录 `MiniQMT-demo.py`（约700行：AutoLogin + apscheduler 定点/间隔任务 + 异步下单 + 回调对账 + Excel 持仓记录）为例，演示各环节的转换前后对照。该 demo 覆盖了 miniQMT 策略的全部典型模式。
+以一个典型的 miniQMT 实盘策略（约700行：AutoLogin + apscheduler 定点/间隔任务 + 异步下单 + 回调对账 + Excel 持仓记录）为例，演示各环节的转换前后对照。这类结构覆盖了 miniQMT 策略的绝大多数典型模式，可直接套用到你自己的策略上。
 
 ## 分析结论（第1步输出节选）
 
@@ -69,7 +69,7 @@ def main_loop(C):
         save_records(C)
 ```
 
-注意：原 demo 用 `09:05` 定点任务做 AutoLogin 重启 QMT —— 整段删除（constraints.md B3），客户端自动登录在客户端设置里配置。
+注意：原策略用 `09:05` 定点任务做 AutoLogin 重启 QMT —— 整段删除（constraints.md B3），客户端自动登录在客户端设置里配置。
 
 ## 3. 异步下单 → passorder + userOrderId
 

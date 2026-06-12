@@ -1,6 +1,6 @@
 # 限制清单与不可转场景判定
 
-每条给出：判定方法 → 影响 → 处理方案。"文件桥方案"指本仓库已实盘验证的架构：策略主体留在外部 Python 进程，大QMT内只跑一个轻量桥脚本（参考 `inner/qmt_inner_bridge.py` + `algo/broker_inner.py`），通过共享目录 JSON 文件交换指令/状态/行情。
+每条给出：判定方法 → 影响 → 处理方案。"文件桥方案"指一种通用兜底架构：策略主体留在外部 Python 进程（任意 Python 版本、任意依赖），大QMT内只跑一个轻量桥脚本，两边通过共享目录的 JSON 文件交换指令/状态/行情。落地步骤见 D 节。
 
 ## A. 硬性环境限制（所有策略都受约束）
 
@@ -17,7 +17,7 @@
 内置自带：**NumPy / Pandas / SciPy / Statsmodels / Patsy / TA_Lib**（版本旧，pandas 是 0.x~1.0 时代，无 `df.itertuples` 新参数等高版本特性，`pd.append` 可用）。
 **处理**：
 - `requests` 等纯 Python 库：多数客户端可用；若报 `Module xxx not in whitelist!` → 券商开了白名单，找券商开通。
-- 自装库：本机装 Python 3.6 到 `C:\Python36`，pip 装 **py3.6 兼容版本**，客户端"设置-模型设置"指向该环境（详见 `docs/qmt_api/innerApi/question_answer.md` 第三方库导入指引）。
+- 自装库：本机装 Python 3.6 到 `C:\Python36`，pip 装 **py3.6 兼容版本**，客户端"设置-模型设置"指向该环境（详见迅投官方 [常见问题](https://dict.thinktrader.net/innerApi/question_answer.html) 的第三方库导入指引）。
 - torch/tensorflow/akshare 等重型或不兼容 py3.6 的库：**不可转** → 方案①模型推理留在外部进程算好信号，落地文件/HTTP，内置端只读信号执行交易；方案②整体走文件桥。
 
 ### A4. 单线程禁阻塞
@@ -47,7 +47,7 @@
 ### B3. 7x24 守护/盘后任务
 **判定**：apscheduler 配置了夜间任务、开机自启动逻辑、AutoLogin。
 **影响**：内置策略只在客户端运行期间活着；客户端通常夜间关闭/清算期掉线。
-**处理**：盘中逻辑转内置；盘后选股/数据下载留外部脚本（Windows 计划任务），结果以文件（如 csv 票池）喂给内置策略读取——这正是 demo 的 `file_url` 票池模式，保留即可（改为本地路径或确认客户端能访问该 URL）。
+**处理**：盘中逻辑转内置；盘后选股/数据下载留外部脚本（Windows 计划任务），结果以文件（如 csv 票池）喂给内置策略读取——常见的"URL/文件票池"模式即属此类，保留即可（改为本地路径或确认客户端能访问该 URL）。
 
 ### B4. 委托回报驱动的复杂状态机
 **判定**：`on_order_stock_async_response` 用 seq 关联、回报里立刻连锁下单。
@@ -87,11 +87,12 @@
 3. 策略与 Web 服务/数据库/消息队列深度耦合
 4. 需要外部进程级容灾（策略进程独立于客户端存活）
 
-文件桥落地步骤：
-1. 复制本仓库 `inner/qmt_inner_bridge.py` 到大QMT新建策略，改 `BRIDGE_DIR` 指向独立目录
-2. 外部策略把 xtquant 调用替换为读写桥目录 JSON（参考 `algo/broker_inner.py` 的 submit/cancel/query/get_quote 实现）
-3. 桥协议：`cmd/*.json` 报撤单指令 → 内置端执行；`state/orders|positions|asset|quotes.json` 每秒回传；`heartbeat.json` 判活
-4. 该方案已在光大证券（两融实盘）与国金（股票模拟）验证报/撤单与行情回传
+文件桥落地步骤（自行实现一个桥脚本，约 200~300 行）：
+1. 在大QMT新建一个内置策略作为"桥"：用 template_timer.py 骨架，`run_time` 1秒循环；指定一个共享目录 `BRIDGE_DIR`
+2. 桥脚本每轮做两件事：扫描 `BRIDGE_DIR/cmd/*.json` 指令文件（含 buy/sell/cancel 及参数）→ 调 `passorder`/`cancel` 执行后删除指令文件；把 `get_trade_detail_data` 的委托/持仓/资产 + `get_full_tick` 行情序列化写入 `BRIDGE_DIR/state/orders|positions|asset|quotes.json`，并每秒刷新 `heartbeat.json`（时间戳）供外部判活
+3. 外部策略把原 xtquant 调用替换为读写桥目录 JSON：下单=写指令文件，查询=读状态文件，并校验心跳新鲜度
+4. 注意原子写（先写临时文件再 rename）、GBK/UTF-8 编码显式声明、指令文件带唯一序号防重放
+5. 该模式已在实盘（含两融账户）验证过报/撤单与行情回传链路可行
 
 ## 实测验证记录（国金模拟 mini + 大QMT 双端同账户交叉验证）
 

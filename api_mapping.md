@@ -1,7 +1,7 @@
 # API 映射表：xtquant（miniQMT外接） → 大QMT内置Python
 
 逐条对照改写。"——"表示无直接等价物，处理方式见备注或 constraints.md。
-权威细节：`docs/qmt_api/innerApi/trading_function.md`、`data_function.md`、`enum_constants.md`、`data_structure.md`。
+权威细节见迅投官方文档：[交易函数](https://dict.thinktrader.net/innerApi/trading_function.html)、[行情函数](https://dict.thinktrader.net/innerApi/data_function.html)、[枚举常量](https://dict.thinktrader.net/innerApi/enum_constants.html)、[数据结构](https://dict.thinktrader.net/innerApi/data_structure.html)。
 
 ## 1. 连接与生命周期
 

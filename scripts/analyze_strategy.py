@@ -172,7 +172,7 @@ def main(path):
         elif name in XTDATA_MAP and base in ('xtdata', ''):
             hit = XTDATA_MAP[name]
         elif base == 'xtdata' and name not in XTDATA_MAP:
-            hit = ('查 docs/qmt_api/innerApi/data_function.md 找等价物', 'manual')
+            hit = ('查官方文档 dict.thinktrader.net/innerApi/data_function.html 找等价物', 'manual')
         if hit:
             n_calls += 1
             tag = {'auto': '直接映射', 'manual': '需重构', 'blocked': '不可转'}[hit[1]]
